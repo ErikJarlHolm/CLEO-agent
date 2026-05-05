@@ -1,0 +1,14 @@
+# Core LLM & agent framework
+langchain>=0.2.0,<0.4.0
+langchain-openai>=0.1.0,<0.3.0
+langchain-community>=0.2.0,<0.4.0
+openai>=1.30.0
+
+# Primary web-search backend (preferred)
+tavily-python>=0.3.0
+
+# Fallback web-search backend (no API key required)
+duckduckgo-search>=6.0.0
+
+# Utilities
+python-dotenv>=1.0.0
