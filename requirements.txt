@@ -1,3 +1,7 @@
+# Testing
+pytest>=8.0.0
+pytest-mock>=3.12.0
+
 # Core LLM & agent framework
 langchain>=0.2.0,<0.4.0
 langchain-openai>=0.1.0,<0.3.0
