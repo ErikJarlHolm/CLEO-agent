@@ -15,7 +15,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_openai import ChatOpenAI
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
 from .prompts import SYSTEM_PROMPT
 from .tools import CLEO_TOOLS
@@ -29,6 +29,23 @@ load_dotenv()
 # or by passing ``model`` to :func:`create_agent` / :func:`run_agent`.
 # ---------------------------------------------------------------------------
 DEFAULT_MODEL = os.environ.get("CLEO_MODEL", "gpt-4o")
+
+
+def _create_llm(model: str, temperature: float):
+    """Create either an OpenAI or Azure OpenAI chat client based on env vars."""
+    azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+    azure_api_key = os.environ.get("AZURE_OPENAI_API_KEY")
+
+    if azure_endpoint and azure_api_key:
+        return AzureChatOpenAI(
+            azure_endpoint=azure_endpoint,
+            api_key=azure_api_key,
+            api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2024-02-01"),
+            azure_deployment=model,
+            temperature=temperature,
+        )
+
+    return ChatOpenAI(model=model, temperature=temperature)
 
 
 def create_agent(
@@ -55,7 +72,7 @@ def create_agent(
     current_date = datetime.now().strftime("%Y-%m-%d")
     system_prompt = SYSTEM_PROMPT.format(current_date=current_date)
 
-    llm = ChatOpenAI(model=model, temperature=temperature)
+    llm = _create_llm(model=model, temperature=temperature)
 
     prompt = ChatPromptTemplate.from_messages(
         [
