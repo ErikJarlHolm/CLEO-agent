@@ -44,7 +44,8 @@ Sources:           Numbered list of ≤ 20 references with URLs
 ## Requirements
 
 - Python 3.10 or later
-- An [OpenAI API key](https://platform.openai.com/api-keys) (**required**)
+- An [OpenAI API key](https://platform.openai.com/api-keys) (**required for direct OpenAI usage**)
+- Or Azure OpenAI endpoint + API key (**required for Azure usage**)
 - A [Tavily API key](https://tavily.com) (*recommended* – free tier available;
   falls back to DuckDuckGo if absent)
 
@@ -66,7 +67,10 @@ pip install -r requirements.txt
 
 # 4. Configure API keys
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY (and optionally TAVILY_API_KEY)
+# Edit .env and add either:
+# - OPENAI_API_KEY (direct OpenAI), or
+# - AZURE_OPENAI_ENDPOINT + AZURE_OPENAI_API_KEY (Azure OpenAI)
+# Optionally add TAVILY_API_KEY.
 ```
 
 ---
@@ -113,9 +117,12 @@ print(response)
 
 | Environment variable | Default | Description |
 |---------------------|---------|-------------|
-| `OPENAI_API_KEY` | — | **Required.** OpenAI API key |
+| `OPENAI_API_KEY` | — | Required for direct OpenAI usage |
+| `AZURE_OPENAI_ENDPOINT` | — | Azure OpenAI endpoint (enables Azure mode when set with key) |
+| `AZURE_OPENAI_API_KEY` | — | Azure OpenAI API key |
+| `AZURE_OPENAI_API_VERSION` | `2024-02-01` | Azure OpenAI API version |
 | `TAVILY_API_KEY` | — | Recommended. Tavily search key (falls back to DuckDuckGo) |
-| `CLEO_MODEL` | `gpt-4o` | OpenAI model to use |
+| `CLEO_MODEL` | `gpt-4o` | OpenAI model, or Azure deployment name in Azure mode |
 
 ---
 

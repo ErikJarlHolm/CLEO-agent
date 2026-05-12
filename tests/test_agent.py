@@ -36,6 +36,8 @@ def _make_mock_llm_response(text: str):
 class TestCreateAgent:
     def test_returns_agent_executor(self, monkeypatch):
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test-dummy")
+        monkeypatch.delenv("AZURE_OPENAI_ENDPOINT", raising=False)
+        monkeypatch.delenv("AZURE_OPENAI_API_KEY", raising=False)
 
         with patch("cleo_agent.agent.ChatOpenAI") as mock_llm_cls:
             mock_llm = MagicMock()
@@ -49,6 +51,8 @@ class TestCreateAgent:
 
     def test_uses_correct_model(self, monkeypatch):
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test-dummy")
+        monkeypatch.delenv("AZURE_OPENAI_ENDPOINT", raising=False)
+        monkeypatch.delenv("AZURE_OPENAI_API_KEY", raising=False)
 
         with patch("cleo_agent.agent.ChatOpenAI") as mock_llm_cls:
             mock_llm_cls.return_value = MagicMock()
@@ -66,6 +70,8 @@ class TestCreateAgent:
 
     def test_temperature_zero_by_default(self, monkeypatch):
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test-dummy")
+        monkeypatch.delenv("AZURE_OPENAI_ENDPOINT", raising=False)
+        monkeypatch.delenv("AZURE_OPENAI_API_KEY", raising=False)
 
         with patch("cleo_agent.agent.ChatOpenAI") as mock_llm_cls:
             mock_llm_cls.return_value = MagicMock()
@@ -80,6 +86,8 @@ class TestCreateAgent:
 
     def test_agent_has_two_tools(self, monkeypatch):
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test-dummy")
+        monkeypatch.delenv("AZURE_OPENAI_ENDPOINT", raising=False)
+        monkeypatch.delenv("AZURE_OPENAI_API_KEY", raising=False)
 
         with patch("cleo_agent.agent.ChatOpenAI") as mock_llm_cls:
             mock_llm_cls.return_value = MagicMock()
@@ -93,6 +101,8 @@ class TestCreateAgent:
     def test_system_prompt_includes_current_date(self, monkeypatch):
         """Verify that the system prompt is baked in with today's date."""
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test-dummy")
+        monkeypatch.delenv("AZURE_OPENAI_ENDPOINT", raising=False)
+        monkeypatch.delenv("AZURE_OPENAI_API_KEY", raising=False)
 
         from datetime import datetime
 
@@ -112,6 +122,26 @@ class TestCreateAgent:
         prompt_str = str(executor.agent.runnable)
         # A light check – the prompt object was constructed from a dated system prompt
         # The actual date injection is tested more directly in test_prompts.py
+
+    def test_uses_azure_client_when_endpoint_and_key_present(self, monkeypatch):
+        monkeypatch.setenv("AZURE_OPENAI_ENDPOINT", "https://example.openai.azure.com/")
+        monkeypatch.setenv("AZURE_OPENAI_API_KEY", "azure-key")
+        monkeypatch.delenv("AZURE_OPENAI_API_VERSION", raising=False)
+
+        with patch("cleo_agent.agent.AzureChatOpenAI") as mock_azure_cls, \
+             patch("cleo_agent.agent.ChatOpenAI") as mock_openai_cls:
+            mock_azure_cls.return_value = MagicMock()
+
+            from cleo_agent.agent import create_agent
+
+            create_agent(model="my-deployment")
+
+        _, kwargs = mock_azure_cls.call_args
+        assert kwargs["azure_endpoint"] == "https://example.openai.azure.com/"
+        assert kwargs["api_key"] == "azure-key"
+        assert kwargs["api_version"] == "2024-02-01"
+        assert kwargs["azure_deployment"] == "my-deployment"
+        mock_openai_cls.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
